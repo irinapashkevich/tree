@@ -4,7 +4,7 @@ using namespace std;
 
 class node{
 public:
-    node(int a);
+    node();
     ~node();
     void push(int a);
     void print();
@@ -13,26 +13,44 @@ public:
     int min_el();
     int max_el();
 private:
+    bool v;
     int value;
     node* left;
     node* right;
 };
 
-class tree{
+class Container
+{
 public:
-    tree(int a);
-    ~tree();
-    void incert(int a);
-    void print();
-    bool find_el(int a);
-    void delete_element(int a);
-private:
-    node* root;
+    // Виртуальные методы, должны быть реализованы вашим контейнером
+    virtual void insert(int value) = 0;
+    virtual bool exists(int value) = 0;
+    virtual void remove(int value) = 0;
+
+    // И этот тоже, хотя к нему потом ещё вернёмся
+    virtual void print() = 0;
+
+    // Виртуальный деструктор (пока просто поверьте, что он нужен)
+    virtual ~Container() { };
 };
 
-tree::tree(int a)
+class tree: public Container{
+public:
+    tree();
+    ~tree();
+    void insert(int a);
+    void print();
+    bool exists(int a);
+    void remove(int a);
+private:
+    node* root;
+    int Size;
+};
+
+tree::tree()
 {
-    this->root=new node(a);
+    this->root=new node();
+    this->Size=0;
 };
 
 tree::~tree()
@@ -40,9 +58,10 @@ tree::~tree()
     delete(this->root);
 }
 
-void tree::incert(int a)
+void tree::insert(int a)
 {
-    root->push(a);
+    this->root->push(a);
+    this->Size++;
 };
 
 void tree::print()
@@ -50,7 +69,7 @@ void tree::print()
     root->print();
 }
 
-bool tree::find_el(int a)
+bool tree::exists(int a)
 {
     if(this->root->find_el(a))
     {
@@ -62,16 +81,16 @@ bool tree::find_el(int a)
     }
 }
 
-void tree::delete_element(int a)
+void tree::remove(int a)
 {
     this->root->delete_element(a);
 }
 
-node::node(int a)
+node::node()
 {
-    this->value=a;
     this->left=NULL;
     this->right=NULL;
+    this->v=false;
 };
 
 node::~node()
@@ -89,33 +108,39 @@ node::~node()
 
 void node::push(int a)
 {
-    if (this->value>a)
+    if(!this->v)
     {
-        if (this->left!=NULL)
-        {
-            this->left->push(a);
-        }
-        else
-        {
-            node* element = new node(a);
-            this->left=element;
-        }
+        this->value=a;
+        this->v=true;
     }
     else
-    {
-        if (this->value<a)
-        {
-            if (this->right!=NULL)
-            {
-                this->right->push(a);
-            }
-            else
-            {
-                node* element = new node(a);
-                this->right=element;
-            }
-        }
-    }
+       if (this->value>a)
+       {
+           if (this->left!=NULL)
+           {
+               this->left->push(a);
+           }
+           else
+           {
+               node* element = new node();
+               this->left=element;
+           }
+       }
+       else
+       {
+           if (this->value<a)
+           {
+               if (this->right!=NULL)
+               {
+                   this->right->push(a);
+               }
+               else
+               {
+                   node* element = new node();
+                   this->right=element;
+               }
+           }
+       }
 };
 
 void node::print()
@@ -207,6 +232,7 @@ void node::delete_element(int a)
         if ((this->right==NULL) && (this->left==NULL))
             delete (this);
         else
+        {
             if (this->right!=NULL)
             {
                 this->value=this->right->min_el();
@@ -215,6 +241,7 @@ void node::delete_element(int a)
             {
                 this->value=this->left->max_el();
             }
+        }
     }
     else
     {
@@ -236,29 +263,24 @@ void node::delete_element(int a)
 
 int main()
 {
-    int k, a;
-    cout<<"rol-vo elementov: ";
-    cin>>k;
-    cin>>a;
-    tree* derevo=new tree(a);
-    for (int i=0; i<k-1; i++)
-    {
-        cin>>a;
-        derevo->incert(a);
-    }
-    derevo->print();
-    cout<<endl;
-    cout<<"find: ";
-    cin>>a;
-    if (derevo->find_el(a))
-        cout<<"yes";
-    else
-        cout<<"no";
-/*    cout<<endl;
-    cout<<"delete: ";
-    cin>>a;
-    derevo->delete_element(a);
-    derevo->print();
-    delete derevo;*/
+    tree* c = new tree();
+
+    for(int i = 1; i < 10; i++)
+        c->insert(i*i);
+
+    cout << "Container after creation:" << endl;
+    c->print();
+
+    if(c->exists(25))
+        cout << "Search for value 25: found" << endl;
+
+    if(!c->exists(111))
+        cout << "Search for value 111: not found" << endl;
+
+    c->remove(25);
+    cout << "Container after deletion of the element:" << endl;
+    c->print();
+
+    delete c;
     return 0;
 }
